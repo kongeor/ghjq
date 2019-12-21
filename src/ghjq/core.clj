@@ -2,7 +2,8 @@
   (:require [clj-http.client :as client]
             [cheshire.core :as json]
             [environ.core :refer [env]]
-            [graphql-query.core :refer [graphql-query]]))
+            [graphql-query.core :refer [graphql-query]]
+            [ghjq.db :as db]))
 
 (def token (env :github-api-token))
 
@@ -14,6 +15,7 @@
                       :fragment/type :Repository
                       :fragment/fields [:databaseId
                                         :name
+                                        [:primaryLanguage [:name]]
                                         [:stargazers [:totalCount]]
                                         [:owner [:login]]]}]})
 
@@ -30,6 +32,7 @@
               [:nodes
                [:id
                 :databaseId
+                :title
                 [:author [:login]]
                 [:comments {:first 10 :after nil}
                  [[:pageInfo [:endCursor :hasNextPage]]
@@ -69,17 +72,32 @@
   (let [s (->
             (client/post "https://api.github.com/graphql"
               {:headers {"Authorization" (str "Bearer " token)}
-               :body (json/generate-string {:query (graphql-query q1)})})
+               :body (json/generate-string {:query (graphql-query q2)})})
             :body
             (json/parse-string true)
             ; pr-str
             )]
-    (clojure.pprint/pprint s)
+    #_(clojure.pprint/pprint s)
+    (def data s)
     #_(clojure.pprint/pprint s (clojure.java.io/writer "data.end"))
     #_(spit "data.edn" s)
     )
   )
 
+(defn insert-repos [data]
+  (let [repos (-> data :data :search :nodes)]
+    (doall
+      (map (fn [repo]
+             (let [id (:databaseId repo)
+                   name (:name repo)
+                   lang (-> repo :primaryLanguage :name)
+                   stars (-> repo :stargazers :totalCount)
+                   owner-username (-> repo :owner :login)]
+               (db/insert-or-get-repository id name lang stars owner-username))) repos))
+    (println "Inserted" (count repos) "repos")))
+
+(comment
+  (insert-repos data))
 
 
 #_(read-string (slurp "data.edn"))

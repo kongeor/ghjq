@@ -7,6 +7,9 @@
                  [clj-http "3.10.0"]
                  [cheshire "5.9.0"]
                  [environ "1.1.0"]
-                 [district0x/graphql-query "1.0.6"]]
+                 [district0x/graphql-query "1.0.6"]
+                 [seancorfield/next.jdbc "1.0.12"]
+                 [org.xerial/sqlite-jdbc "3.28.0"]
+                 [honeysql "0.9.8"]]
   :plugins [[lein-environ "1.1.0"]]
   :repl-options {:init-ns ghjq.core})
