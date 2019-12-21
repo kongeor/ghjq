@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [clj-http "3.10.0"]
                  [cheshire "5.9.0"]
-                 [environ "1.1.0"]]
+                 [environ "1.1.0"]
+                 [district0x/graphql-query "1.0.6"]]
   :plugins [[lein-environ "1.1.0"]]
   :repl-options {:init-ns ghjq.core})
